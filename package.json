@@ -1,0 +1,22 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "Testes com o nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EdgardOliveira/nodejs.git"
+  },
+  "keywords": [
+    "nodejs"
+  ],
+  "author": "Edgard Oliveira",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EdgardOliveira/nodejs/issues"
+  },
+  "homepage": "https://github.com/EdgardOliveira/nodejs#readme"
+}
