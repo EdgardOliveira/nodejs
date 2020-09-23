@@ -2,18 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongodb = require('mongodb');
 const ObjectId = mongodb.ObjectId;
-require('dotenv').config()
-
+require('dotenv').config();
 
 // Criando um bloco assíncrono
 (async () => {
 
-console.log(process.env.APP_NAME)
-
 // Se for uma aplicação real e um banco que você quer proteger a senha, não coloque essas informações no
 // GitHub. Procure sempre utilizar as variáveis de ambiente para isso.
-const connectionString = `mongodb+srv://'${process.env.USER}':'${process.env.PASS}'@'${process.env.DB_HOST}'/'${process.env.DB_NAME}'?retryWrites=true&w=majority`;
-
+//const connectionString = process.env.MONGO_URI;
+const connectionString = 'mongodb+srv://admin:Uu8ftSpPxbyJiNk@cluster0.4hryz.mongodb.net/ocean_mongodb?retryWrites=true&w=majority;';
 // async/await
 
 console.info('Conectando ao banco de dados MongoDB!');
