@@ -1,73 +1,106 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const app = express()
-const port = process.env.PORT || 3000
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongodb = require('mongodb');
+const ObjectId = mongodb.ObjectId;
+
+// Criando um bloco assíncrono
+(async () => {
+
+// Se for uma aplicação real e um banco que você quer proteger a senha, não coloque essas informações no
+// GitHub. Procure sempre utilizar as variáveis de ambiente para isso.
+const connectionString = 'mongodb+srv://admin:Uu8ftSpPxbyJiNk@cluster0.4hryz.mongodb.net/ocean_mongodb?retryWrites=true&w=majority';
+
+// async/await
+
+console.info('Conectando ao banco de dados MongoDB!');
+
+const client = await mongodb.MongoClient.connect(connectionString, {
+    useUnifiedTopology: true
+});
+
+console.info('Banco de dados conectado com sucesso!');
+
+const app = express();
+const port = process.env.PORT || 3000;
 
 const jsonParser = bodyParser.json();
-app.use(jsonParser)
+app.use(jsonParser);
 
-const mensagens = [
-    {
-        id : 0,
-        texto : "essa é uma mensagem",
-    },
-    {
-        id : 1,
-        texto: "essa é outra mensagem"
-    },
-];
+app.get('/', (req, res) => {
+    res.send('Hello world com MongoDB!');
+});
 
-//Listar todos
-app.get('/mensagens', (req, res) => {
-  res.json(mensagens.filter(Boolean))
-})
+// Endpoints de envio de mensagens
+// CRUD -> Create, Read (Read All e Read Single), Update and Delete
+// CRUD -> Criar, Ler (Ler tudo e ler individualmente), atualizar e remover
 
-//Cadastrar
-app.post('/mensagens', (req, res) => {
-    const mensagem = req.body.mensagem
+const db = await client.db('ocean_mongodb');
 
-    const id = mensagens.length
-    
-    mensagem.id = id
-    
-    mensagens.push(mensagem)
+const mensagens = await db.collection('mensagens');
 
-    console.log(mensagens)
+// Read All
+app.get('/mensagens', async (req, res) => {
+    const findResult = await mensagens.find({}).toArray();
 
-    res.send(`A mensagem '${mensagem.texto}' foi criada com sucesso. Id ${mensagem.id}` )
-})
+    res.json(findResult);
+});
 
-//Listar um especifico
-app.get('/mensagens/:id', (req, res) => {
-    const id = req.params.id
-    
-    console.log(id)
+// Create
+app.post('/mensagens', async (req, res) => {
+    // Obtendo a mensagem que foi recebida através do body da requisição
+    const mensagem = req.body;
 
-    const mensagem = mensagens[id]
+    // Insiro a mensagem na collection de mensagens do MongoDB
+    const resultado = await mensagens.insertOne(mensagem);
 
-    res.send(`Listar uma mensagem especifica com o id ${id} '${mensagem}'`)
-})
+    const objetoInserido = resultado.ops[0];
 
-//Atualizar uma mensagem especifica
-app.put('/mensagens/:id', (req, res) => {
-    const id = req.params.id
+    // Envio a mensagem de sucesso, informando o ID obtido
+    res.json(objetoInserido);
+});
 
-    const texto = req.body.texto
+// Read Single
+app.get('/mensagens/:id', async (req, res) => {
+    // Pega o ID através dos parâmetros da requisição
+    const id = req.params.id;
 
-    mensagens[id].texto = texto
+    // Acessamos a mensagem de acordo com o ID informado
+    const mensagem = await mensagens.findOne({ _id: ObjectId(id) });
 
-    res.send(`Mensagem com Id ${id} atualizada para '${mensagens[id].texto}'`)
-})
+    res.json(mensagem);
+});
 
-//Excluir uma mensagem específica
-app.delete('/mensagens/:id', (req, res) => {
-    const id = req.params.id
+// Update
+app.put('/mensagens/:id', async (req, res) => {
+    // Acessa o ID pelos parâmetros
+    const id = req.params.id;
 
-    delete mensagems[id]
+    // Obtém a mensagem que foi enviada pelo usuário no corpo (body) da requisição
+    const novaMensagem = req.body;
 
-    res.send('Excluir uma mensagem')
-})
+    const mensagemAtual = await mensagens.findOne({ _id: ObjectId(id) });
+
+    mensagemAtual.texto = novaMensagem.texto;
+
+    // Atualiza a mensagem direto na lista de mensagens, acessando pelo ID que foi informado
+    const resultado = await mensagens.updateOne({ _id: ObjectId(id) }, { $set: mensagemAtual });
+
+    // Envia uma mensagem de sucesso.
+    res.json(mensagemAtual);
+});
+
+// Delete
+app.delete('/mensagens/:id', async (req, res) => {
+    const id = req.params.id;
+
+    const resultado = await mensagens.deleteOne({ _id: ObjectId(id) });
+
+    res.send(`Mensagem com o ID ${id} foi removida com sucesso.`);
+});
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
+    console.log(`App rodando em http://localhost:${port}`);
+});
+
+// Fecho o bloco assíncrono e executo
+})();
